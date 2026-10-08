@@ -17,7 +17,7 @@ export const Route = createFileRoute("/")({
 });
 
 type Msg = { role: "user" | "assistant"; content: string };
-type Item = { id: number; at: string; title: string; kind: "alarm" | "event"; done?: boolean };
+type Item = { id: number; at: string; title: string; kind: "alarm" | "event"; done?: boolean; q?: string };
 type Mode = "off" | "sleep" | "awake" | "thinking" | "speaking";
 
 const WAKE = /\b(j\.?\s?d|jd|jdé|jidé|gédé|g\.?\s?d|j'ai dit|jay dee|djé dé)\b/i;
@@ -33,6 +33,8 @@ function JD() {
   const recRef = useRef<any>(null);
   const modeRef = useRef<Mode>("off");
   const histRef = useRef<Msg[]>([]);
+  const ytRef = useRef<HTMLIFrameElement | null>(null);
+  const handleRef = useRef<(t: string) => void>(() => {});
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
 
   const set = (m: Mode) => { modeRef.current = m; setMode(m); };
@@ -59,8 +61,17 @@ function JD() {
       const now = Date.now();
       setItems((list) => list.map((it) => {
         if (!it.done && it.kind === "alarm" && new Date(it.at).getTime() <= now) {
-          beep();
-          speak(`Alarme : ${it.title || "il est l'heure"}.`);
+          const q = it.q || "";
+          if (q.startsWith("music:")) {
+            speak(`Debout ! ${it.title || ""}`);
+            quickYT({ data: { q: q.slice(6) } }).then((r) => setVideo(r.videoId));
+          } else if (q.startsWith("search:")) {
+            beep();
+            handleRef.current("Fais une recherche web et résume : " + q.slice(7));
+          } else {
+            beep();
+            speak(`Alarme : ${it.title || "il est l'heure"}.`);
+          }
           return { ...it, done: true };
         }
         return it;
@@ -105,6 +116,15 @@ function JD() {
 
   async function handle(text: string) {
     addMsg({ role: "user", content: text });
+    const yc = (func: string) => ytRef.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func, args: [] }), "*");
+    const reply = (m: string) => { addMsg({ role: "assistant", content: m }); speak(m); };
+    if (/(arr[êe]te|coupe|enl[èe]ve|stop|[ée]teins|ferme|vire)\b.*(musique|vid[ée]o|son|chanson|lecture)/i.test(text)) {
+      setVideo(null); reply("Musique coupée."); return;
+    }
+    if (/\bpause\b/i.test(text)) { yc("pauseVideo"); reply("En pause."); return; }
+    if (/(reprends|relance|remets).*(musique|vid[ée]o|lecture|son)?$/i.test(text) && video) { yc("playVideo"); reply("Je reprends."); return; }
+    if (/(monte|augmente).*(son|volume)/i.test(text)) { yc("unMute"); ytRef.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func: "setVolume", args: [100] }), "*"); reply("Volume au maximum."); return; }
+    if (/(baisse|diminue).*(son|volume)/i.test(text)) { ytRef.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func: "setVolume", args: [30] }), "*"); reply("Volume baissé."); return; }
     // Commandes instantanées (sans passer par l'IA)
     const yt = text.match(/^(?:mets|joue|lance|met)\s+(?:moi\s+)?(?:la musique |la chanson |la vidéo )?(.+)/i);
     const tm = text.match(/(?:minuteur|alarme|réveille[- ]moi|rappelle[- ]moi).*?dans\s+(\d+)\s*(seconde|minute|heure)/i);
@@ -119,7 +139,8 @@ function JD() {
       const n = Number(tm[1]);
       const ms = n * (tm[2].startsWith("s") ? 1000 : tm[2].startsWith("m") ? 60000 : 3600000);
       const at = new Date(Date.now() + ms);
-      setItems((l) => [...l, { id: Date.now(), at: at.toISOString(), title: "Minuteur", kind: "alarm" }]);
+      const mus = text.match(/avec\s+(?:de la musique\s+|la musique\s+|la chanson\s+|du\s+|de\s+)?(.+)$/i)?.[1];
+      setItems((l) => [...l, { id: Date.now(), at: at.toISOString(), title: mus ? `Musique : ${mus}` : "Minuteur", kind: "alarm", q: mus ? "music:" + mus : "" }]);
       const msg = `C'est noté, alarme dans ${n} ${tm[2]}${n > 1 ? "s" : ""}.`;
       addMsg({ role: "assistant", content: msg });
       speak(msg);
@@ -134,13 +155,15 @@ function JD() {
       if (a.type === "youtube") setVideo(r.videoId);
       if (a.type === "open_url" && a.query) window.open(a.query, "_blank");
       if ((a.type === "alarm" || a.type === "event") && a.datetime)
-        setItems((l) => [...l, { id: Date.now(), at: a.datetime, title: a.title, kind: a.type as "alarm" | "event" }]);
+        setItems((l) => [...l, { id: Date.now(), at: a.datetime, title: a.title, kind: a.type as "alarm" | "event", q: a.query }]);
       speak(r.reply, a.type === "sleep" ? "sleep" : "awake");
       if (a.type === "sleep") modeRef.current = "sleep";
     } catch (e: any) {
       speak("Désolé, une erreur est survenue. " + (e?.message || ""));
     }
   }
+
+  handleRef.current = handle;
 
   function init() {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -218,9 +241,13 @@ function JD() {
             <div className="panel w-full">
               <div className="mb-2 flex items-center justify-between">
                 <h2 className="panel-title !mb-0">Lecture</h2>
+                <div className="flex gap-3">
+                <button className="text-xs text-muted-foreground hover:text-primary" onClick={() => ytRef.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func: "pauseVideo", args: [] }), "*")}>PAUSE</button>
+                <button className="text-xs text-muted-foreground hover:text-primary" onClick={() => ytRef.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func: "playVideo", args: [] }), "*")}>LECTURE</button>
                 <button className="text-xs text-muted-foreground hover:text-primary" onClick={() => setVideo(null)}>FERMER</button>
+                </div>
               </div>
-              <iframe className="aspect-video w-full rounded" src={`https://www.youtube.com/embed/${video}?autoplay=1`} allow="autoplay; encrypted-media" allowFullScreen />
+              <iframe ref={ytRef} className="aspect-video w-full rounded" src={`https://www.youtube.com/embed/${video}?autoplay=1&enablejsapi=1`} allow="autoplay; encrypted-media" allowFullScreen />
             </div>
           )}
         </div>
@@ -234,7 +261,7 @@ function JD() {
                 <div>
                   <span className="font-display text-[10px] tracking-widest text-primary">{it.kind === "alarm" ? "ALARME" : "ÉVÉNEMENT"}</span>
                   <p className="text-sm">{it.title || "—"}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(it.at).toLocaleString("fr-FR")}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(it.at).toLocaleString("fr-FR")}{it.q?.startsWith("music:") ? " · ♪ musique" : it.q?.startsWith("search:") ? " · recherche" : ""}</p>
                 </div>
                 <button className="text-muted-foreground hover:text-destructive" onClick={() => setItems((l) => l.filter((x) => x.id !== it.id))}>✕</button>
               </div>
