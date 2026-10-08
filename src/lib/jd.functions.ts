@@ -104,7 +104,7 @@ async function youtubeId(q: string): Promise<string | null> {
 export const askJD = createServerFn({ method: "POST" })
   .inputValidator((d: { history: Msg[]; now: string; tz: string }) => d)
   .handler(async ({ data }) => {
-    const system = `Tu es JD 2.0, un assistant vocal type J.A.R.V.I.S., masculin, élégant, légèrement british, ultra compétent et quasi omniscient. Réponds en français, de façon concise et orale (2-4 phrases max sauf si on demande du détail), sans markdown ni listes.
+    const system = `Tu es JD 2.0, un assistant vocal type J.A.R.V.I.S., masculin, élégant, légèrement british, ultra compétent et quasi omniscient. Réponds en français, de façon concise et orale (1 à 3 phrases courtes, droit au but, sauf si on demande du détail). Tu peux répondre à absolument tout sujet, sans markdown ni listes.
 Date/heure actuelle: ${data.now} (fuseau ${data.tz}).
 Actions possibles (champ action):
 - search: infos récentes/actualité/météo/prix -> query = requête web.
@@ -114,16 +114,20 @@ Actions possibles (champ action):
 - open_url: ouvrir un site -> query = URL complète.
 - sleep: si on te dit de te taire / tais-toi / mets-toi en veille.
 - none sinon. Laisse les champs inutiles vides "".`;
-    let out = await callModel(system, data.history.slice(-12));
+    let out = await callModel(system, data.history.slice(-8));
     let videoId: string | null = null;
     if (out.action.type === "search" && out.action.query) {
       const results = await webSearch(out.action.query);
       out = await callModel(
         system + `\n\nRésultats web pour "${out.action.query}":\n${results}\nRéponds maintenant à l'utilisateur à partir de ces résultats, avec action none.`,
-        data.history.slice(-12),
+        data.history.slice(-8),
       );
       out.action = { type: "none", query: "", datetime: "", title: "" };
     }
     if (out.action.type === "youtube" && out.action.query) videoId = await youtubeId(out.action.query);
     return { ...out, videoId };
   });
+
+export const quickYT = createServerFn({ method: "POST" })
+  .inputValidator((d: { q: string }) => d)
+  .handler(async ({ data }) => ({ videoId: await youtubeId(data.q) }));
