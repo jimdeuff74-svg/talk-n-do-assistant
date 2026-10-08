@@ -15,7 +15,7 @@ const schema = {
       additionalProperties: false,
       required: ["type", "query", "datetime", "title"],
       properties: {
-        type: { type: "string", enum: ["none", "search", "youtube", "alarm", "event", "open_url", "sleep"] },
+        type: { type: "string", enum: ["none", "search", "youtube", "alarm", "event", "open_url", "sleep", "stop_music"] },
         query: { type: "string" },
         datetime: { type: "string" },
         title: { type: "string" },
@@ -109,7 +109,8 @@ Date/heure actuelle: ${data.now} (fuseau ${data.tz}).
 Actions possibles (champ action):
 - search: infos récentes/actualité/météo/prix -> query = requête web.
 - youtube: jouer musique/vidéo -> query = recherche YouTube.
-- alarm: alarme/minuteur -> datetime ISO 8601 local complet, title = libellé.
+- alarm: alarme/minuteur/réveil -> datetime ISO 8601 local complet, title = libellé. query = "music:<recherche YouTube>" si le réveil doit jouer une musique, "search:<requête>" si à l'heure dite il doit faire une recherche web (ex: actus du matin), sinon "".
+- youtube sert aussi à changer de musique. Tu PEUX contrôler la musique: pour arrêter/enlever la musique utilise action stop_music. Ne dis jamais que tu n'as pas accès au lecteur.
 - event: ajouter au calendrier -> datetime ISO, title.
 - open_url: ouvrir un site -> query = URL complète.
 - sleep: si on te dit de te taire / tais-toi / mets-toi en veille.
