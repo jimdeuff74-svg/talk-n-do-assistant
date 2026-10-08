@@ -29,8 +29,8 @@ async function callModel(system: string, history: Msg[]): Promise<Out> {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.LOVABLE_API_KEY}`,
-      "Lovable-API-Key": process.env.LOVABLE_API_KEY ?? "",
+      Authorization: `Bearer ${process.env["LOVABLE_API_KEY"]}`,
+      "Lovable-API-Key": process.env["LOVABLE_API_KEY"] ?? "",
       "X-Lovable-AIG-SDK": "fetch",
     },
     body: JSON.stringify({
@@ -81,7 +81,7 @@ async function webSearch(q: string): Promise<string> {
     const re = /class="result__a"[^>]*>([\s\S]*?)<\/a>[\s\S]*?class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g;
     let m;
     while ((m = re.exec(html)) && out.length < 6) {
-      out.push(`- ${m[1].replace(/<[^>]+>/g, "")}: ${m[2].replace(/<[^>]+>/g, "")}`);
+      out.push(`- ${(m[1] ?? "").replace(/<[^>]+>/g, "")}: ${(m[2] ?? "").replace(/<[^>]+>/g, "")}`);
     }
     return out.join("\n") || "Aucun résultat.";
   } catch {
@@ -95,7 +95,7 @@ async function youtubeId(q: string): Promise<string | null> {
       headers: { "User-Agent": "Mozilla/5.0", "Accept-Language": "fr-FR" },
     });
     const m = (await r.text()).match(/"videoId":"([\w-]{11})"/);
-    return m ? m[1] : null;
+    return m?.[1] ?? null;
   } catch {
     return null;
   }
