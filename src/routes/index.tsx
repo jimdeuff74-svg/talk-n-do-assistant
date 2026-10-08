@@ -153,6 +153,7 @@ function JD() {
       addMsg({ role: "assistant", content: r.reply });
       const a = r.action;
       if (a.type === "youtube") setVideo(r.videoId);
+      if (a.type === "stop_music") setVideo(null);
       if (a.type === "open_url" && a.query) window.open(a.query, "_blank");
       if ((a.type === "alarm" || a.type === "event") && a.datetime)
         setItems((l) => [...l, { id: Date.now(), at: a.datetime, title: a.title, kind: a.type as "alarm" | "event", q: a.query }]);
