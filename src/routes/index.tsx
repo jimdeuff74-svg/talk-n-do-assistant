@@ -91,9 +91,9 @@ function JD() {
     try { recRef.current?.abort(); } catch {}
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "fr-FR"; u.pitch = 0.85; u.rate = 1.02;
+    u.lang = "fr-FR"; u.pitch = 0.85; u.rate = 1.25;
     if (voiceRef.current) u.voice = voiceRef.current;
-    const done = () => { set(prev); setTimeout(startRec, 250); };
+    const done = () => { set(prev); setTimeout(startRec, 60); };
     u.onend = done; u.onerror = done;
     speechSynthesis.speak(u);
   }
@@ -148,7 +148,7 @@ function JD() {
       if (HUSH.test(fin)) { set("sleep"); speechSynthesis.cancel(); setInterim(""); return; }
       handle(fin.trim());
     };
-    rec.onend = () => { if (modeRef.current === "sleep" || modeRef.current === "awake") setTimeout(startRec, 200); };
+    rec.onend = () => { if (modeRef.current === "sleep" || modeRef.current === "awake") setTimeout(startRec, 50); };
     rec.onerror = () => {};
     recRef.current = rec;
     set("sleep");
