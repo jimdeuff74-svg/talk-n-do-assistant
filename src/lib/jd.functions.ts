@@ -127,3 +127,7 @@ Actions possibles (champ action):
     if (out.action.type === "youtube" && out.action.query) videoId = await youtubeId(out.action.query);
     return { ...out, videoId };
   });
+
+export const quickYT = createServerFn({ method: "POST" })
+  .inputValidator((d: { q: string }) => d)
+  .handler(async ({ data }) => ({ videoId: await youtubeId(data.q) }));

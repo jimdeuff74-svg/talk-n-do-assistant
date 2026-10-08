@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { askJD } from "@/lib/jd.functions";
+import { askJD, quickYT } from "@/lib/jd.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -105,6 +105,26 @@ function JD() {
 
   async function handle(text: string) {
     addMsg({ role: "user", content: text });
+    // Commandes instantanées (sans passer par l'IA)
+    const yt = text.match(/^(?:mets|joue|lance|met)\s+(?:moi\s+)?(?:la musique |la chanson |la vidéo )?(.+)/i);
+    const tm = text.match(/(?:minuteur|alarme|réveille[- ]moi|rappelle[- ]moi).*?dans\s+(\d+)\s*(seconde|minute|heure)/i);
+    if (yt?.[1] && !/alarme|minuteur|rappel/i.test(text)) {
+      const q = yt[1];
+      speak(`Je lance ${q}.`);
+      quickYT({ data: { q } }).then((r) => setVideo(r.videoId));
+      addMsg({ role: "assistant", content: `Je lance ${q}.` });
+      return;
+    }
+    if (tm?.[1] && tm[2]) {
+      const n = Number(tm[1]);
+      const ms = n * (tm[2].startsWith("s") ? 1000 : tm[2].startsWith("m") ? 60000 : 3600000);
+      const at = new Date(Date.now() + ms);
+      setItems((l) => [...l, { id: Date.now(), at: at.toISOString(), title: "Minuteur", kind: "alarm" }]);
+      const msg = `C'est noté, alarme dans ${n} ${tm[2]}${n > 1 ? "s" : ""}.`;
+      addMsg({ role: "assistant", content: msg });
+      speak(msg);
+      return;
+    }
     set("thinking");
     try { recRef.current?.abort(); } catch {}
     try {
