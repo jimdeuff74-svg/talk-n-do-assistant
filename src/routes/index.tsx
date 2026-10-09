@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { askJD, quickYT } from "@/lib/jd.functions";
+import { askJD, quickYT, enqueuePi } from "@/lib/jd.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -35,10 +35,9 @@ function JD() {
   const histRef = useRef<Msg[]>([]);
   const ytRef = useRef<HTMLIFrameElement | null>(null);
   const handleRef = useRef<(t: string) => void>(() => {});
-  const [piUrl, setPiUrl] = useState("https://hygiene-sought-inspector-adaptor.trycloudflare.com");
   const [out, setOut] = useState<"browser" | "pi" | "both">("browser");
-  const piRef = useRef({ url: "", out: "browser" });
-  piRef.current = { url: piUrl, out };
+  const piRef = useRef({ out: "browser" });
+  piRef.current = { out };
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
 
   const set = (m: Mode) => { modeRef.current = m; setMode(m); };
@@ -58,10 +57,9 @@ function JD() {
   }, []);
 
   useEffect(() => {
-    setPiUrl(localStorage.getItem("jd-pi-url") || "https://hygiene-sought-inspector-adaptor.trycloudflare.com");
     setOut((localStorage.getItem("jd-out") as any) || "browser");
   }, []);
-  useEffect(() => { localStorage.setItem("jd-pi-url", piUrl); localStorage.setItem("jd-out", out); }, [piUrl, out]);
+  useEffect(() => { localStorage.setItem("jd-out", out); }, [out]);
 
   useEffect(() => { localStorage.setItem("jd-items", JSON.stringify(items)); }, [items]);
 
@@ -112,10 +110,8 @@ function JD() {
     try { recRef.current?.abort(); } catch {}
     speechSynthesis.cancel();
     const pi = piRef.current;
-    if (pi.out !== "browser" && pi.url) {
-      const audioUrl = `${window.location.origin}/api/public/tts?t=${encodeURIComponent(text)}`;
-      fetch(pi.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: audioUrl }) })
-        .catch((e) => console.error("Erreur Pi :", e));
+    if (pi.out !== "browser") {
+      enqueuePi({ data: { text } }).catch((e) => console.error("Erreur file Pi :", e));
     }
     const u = new SpeechSynthesisUtterance(text);
     if (pi.out === "pi") u.volume = 0; // garde le timing pour couper le micro
@@ -285,7 +281,6 @@ function JD() {
               </button>
             ))}
           </div>
-          <input value={piUrl} onChange={(e) => setPiUrl(e.target.value)} placeholder="Adresse du Raspberry" className="item mb-2 w-full bg-transparent text-xs outline-none" />
           <button className="btn-hud mb-6 w-full !py-2 !text-[10px]" onClick={() => speak("Test audio. Ici JD 2.0, sur le Raspberry.")}>Tester le Pi 🔊</button>
           <h2 className="panel-title">Alarmes & Agenda</h2>
           <div className="flex flex-col gap-2">
