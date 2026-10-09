@@ -121,6 +121,12 @@ function JD() {
     if (/(arr[êe]te|coupe|enl[èe]ve|stop|[ée]teins|ferme|vire)\b.*(musique|vid[ée]o|son|chanson|lecture)/i.test(text)) {
       setVideo(null); reply("Musique coupée."); return;
     }
+    if (/(vide|efface|nettoie|supprime|reset).*(cache|m[ée]moire|historique|conversation)/i.test(text)) {
+      histRef.current = []; setLog([]);
+      localStorage.removeItem("jd-history");
+      speak("Cache vidé. Vos alarmes et votre agenda sont intacts.");
+      return;
+    }
     if (/\bpause\b/i.test(text)) { yc("pauseVideo"); reply("En pause."); return; }
     if (/(reprends|relance|remets).*(musique|vid[ée]o|lecture|son)?$/i.test(text) && video) { yc("playVideo"); reply("Je reprends."); return; }
     if (/(monte|augmente).*(son|volume)/i.test(text)) { yc("unMute"); ytRef.current?.contentWindow?.postMessage(JSON.stringify({ event: "command", func: "setVolume", args: [100] }), "*"); reply("Volume au maximum."); return; }
