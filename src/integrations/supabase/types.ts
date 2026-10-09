@@ -14,13 +14,55 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      pi_messages: {
+        Row: {
+          claimed_at: string | null
+          created_at: string
+          id: string
+          played_at: string | null
+          source: string
+          text: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          played_at?: string | null
+          source?: string
+          text: string
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          played_at?: string | null
+          source?: string
+          text?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_next_pi_message: {
+        Args: never
+        Returns: {
+          claimed_at: string | null
+          created_at: string
+          id: string
+          played_at: string | null
+          source: string
+          text: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "pi_messages"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       [_ in never]: never
