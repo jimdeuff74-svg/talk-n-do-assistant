@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { askJD, quickYT, enqueuePi } from "@/lib/jd.functions";
+import { askJD, quickYT } from "@/lib/jd.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -35,9 +35,6 @@ function JD() {
   const histRef = useRef<Msg[]>([]);
   const ytRef = useRef<HTMLIFrameElement | null>(null);
   const handleRef = useRef<(t: string) => void>(() => {});
-  const [out, setOut] = useState<"browser" | "pi" | "both">("browser");
-  const piRef = useRef({ out: "browser" });
-  piRef.current = { out };
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
 
   const set = (m: Mode) => { modeRef.current = m; setMode(m); };
@@ -55,11 +52,6 @@ function JD() {
     const t = setInterval(() => setClock(new Date().toLocaleTimeString("fr-FR")), 1000);
     return () => clearInterval(t);
   }, []);
-
-  useEffect(() => {
-    setOut((localStorage.getItem("jd-out") as any) || "browser");
-  }, []);
-  useEffect(() => { localStorage.setItem("jd-out", out); }, [out]);
 
   useEffect(() => { localStorage.setItem("jd-items", JSON.stringify(items)); }, [items]);
 
@@ -109,12 +101,7 @@ function JD() {
     set("speaking");
     try { recRef.current?.abort(); } catch {}
     speechSynthesis.cancel();
-    const pi = piRef.current;
-    if (pi.out !== "browser") {
-      enqueuePi({ data: { text } }).catch((e) => console.error("Erreur file Pi :", e));
-    }
     const u = new SpeechSynthesisUtterance(text);
-    if (pi.out === "pi") u.volume = 0; // garde le timing pour couper le micro
     u.lang = "fr-FR"; u.pitch = 0.85; u.rate = 1.25;
     if (voiceRef.current) u.voice = voiceRef.current;
     const done = () => { set(prev); setTimeout(startRec, 60); };
@@ -273,15 +260,6 @@ function JD() {
         </div>
 
         <aside className="panel order-3">
-          <h2 className="panel-title">Sortie audio</h2>
-          <div className="mb-3 flex gap-2">
-            {(["browser", "pi", "both"] as const).map((o) => (
-              <button key={o} onClick={() => setOut(o)} className={`item flex-1 justify-center text-xs ${out === o ? "text-primary border-primary" : "text-muted-foreground"}`}>
-                {o === "browser" ? "ÉCRAN" : o === "pi" ? "RASPBERRY" : "LES DEUX"}
-              </button>
-            ))}
-          </div>
-          <button className="btn-hud mb-6 w-full !py-2 !text-[10px]" onClick={() => speak("Test audio. Ici JD 2.0, sur le Raspberry.")}>Tester le Pi 🔊</button>
           <h2 className="panel-title">Alarmes & Agenda</h2>
           <div className="flex flex-col gap-2">
             {items.length === 0 && <p className="text-sm text-muted-foreground">« JD, réveille-moi à 7h »</p>}

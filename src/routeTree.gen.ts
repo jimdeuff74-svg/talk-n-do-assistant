@@ -10,89 +10,33 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiPublicPiAckRouteImport } from './routes/api/public/pi/ack'
-import { Route as ApiPublicPiAskRouteImport } from './routes/api/public/pi/ask'
-import { Route as ApiPublicPiNextRouteImport } from './routes/api/public/pi/next'
-import { Route as ApiPublicPiAudioIdRouteImport } from './routes/api/public/pi/audio.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicPiAckRoute = ApiPublicPiAckRouteImport.update({
-  id: '/api/public/pi/ack',
-  path: '/api/public/pi/ack',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPiAskRoute = ApiPublicPiAskRouteImport.update({
-  id: '/api/public/pi/ask',
-  path: '/api/public/pi/ask',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPiNextRoute = ApiPublicPiNextRouteImport.update({
-  id: '/api/public/pi/next',
-  path: '/api/public/pi/next',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPiAudioIdRoute = ApiPublicPiAudioIdRouteImport.update({
-  id: '/api/public/pi/audio/$id',
-  path: '/api/public/pi/audio/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/api/public/pi/ack': typeof ApiPublicPiAckRoute
-  '/api/public/pi/ask': typeof ApiPublicPiAskRoute
-  '/api/public/pi/next': typeof ApiPublicPiNextRoute
-  '/api/public/pi/audio/$id': typeof ApiPublicPiAudioIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/api/public/pi/ack': typeof ApiPublicPiAckRoute
-  '/api/public/pi/ask': typeof ApiPublicPiAskRoute
-  '/api/public/pi/next': typeof ApiPublicPiNextRoute
-  '/api/public/pi/audio/$id': typeof ApiPublicPiAudioIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/api/public/pi/ack': typeof ApiPublicPiAckRoute
-  '/api/public/pi/ask': typeof ApiPublicPiAskRoute
-  '/api/public/pi/next': typeof ApiPublicPiNextRoute
-  '/api/public/pi/audio/$id': typeof ApiPublicPiAudioIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/api/public/pi/ack'
-    | '/api/public/pi/ask'
-    | '/api/public/pi/next'
-    | '/api/public/pi/audio/$id'
+  fullPaths: '/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/api/public/pi/ack'
-    | '/api/public/pi/ask'
-    | '/api/public/pi/next'
-    | '/api/public/pi/audio/$id'
-  id:
-    | '__root__'
-    | '/'
-    | '/api/public/pi/ack'
-    | '/api/public/pi/ask'
-    | '/api/public/pi/next'
-    | '/api/public/pi/audio/$id'
+  to: '/'
+  id: '__root__' | '/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ApiPublicPiAckRoute: typeof ApiPublicPiAckRoute
-  ApiPublicPiAskRoute: typeof ApiPublicPiAskRoute
-  ApiPublicPiNextRoute: typeof ApiPublicPiNextRoute
-  ApiPublicPiAudioIdRoute: typeof ApiPublicPiAudioIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -104,43 +48,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/pi/ack': {
-      id: '/api/public/pi/ack'
-      path: '/api/public/pi/ack'
-      fullPath: '/api/public/pi/ack'
-      preLoaderRoute: typeof ApiPublicPiAckRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/pi/ask': {
-      id: '/api/public/pi/ask'
-      path: '/api/public/pi/ask'
-      fullPath: '/api/public/pi/ask'
-      preLoaderRoute: typeof ApiPublicPiAskRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/pi/next': {
-      id: '/api/public/pi/next'
-      path: '/api/public/pi/next'
-      fullPath: '/api/public/pi/next'
-      preLoaderRoute: typeof ApiPublicPiNextRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/pi/audio/$id': {
-      id: '/api/public/pi/audio/$id'
-      path: '/api/public/pi/audio/$id'
-      fullPath: '/api/public/pi/audio/$id'
-      preLoaderRoute: typeof ApiPublicPiAudioIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ApiPublicPiAckRoute: ApiPublicPiAckRoute,
-  ApiPublicPiAskRoute: ApiPublicPiAskRoute,
-  ApiPublicPiNextRoute: ApiPublicPiNextRoute,
-  ApiPublicPiAudioIdRoute: ApiPublicPiAudioIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
