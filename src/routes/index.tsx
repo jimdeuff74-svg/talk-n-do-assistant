@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { askJD, quickYT } from "@/lib/jd.functions";
+import { AudioSettings, applySink } from "@/components/AudioSettings";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -83,6 +84,7 @@ function JD() {
   function beep() {
     try {
       const ctx = new AudioContext();
+      applySink(ctx);
       [0, 0.3, 0.6].forEach((d) => {
         const o = ctx.createOscillator(); const g = ctx.createGain();
         o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
@@ -215,7 +217,7 @@ function JD() {
       <div className="hud-grid" />
       <header className="relative z-10 flex items-center justify-between px-8 py-5">
         <div className="font-display text-xl tracking-[0.4em] text-primary text-glow">JD 2.0</div>
-        <div className="font-display text-sm tracking-[0.3em] text-muted-foreground">{clock}</div>
+        <div className="flex items-center gap-5"><div className="font-display text-sm tracking-[0.3em] text-muted-foreground">{clock}</div><AudioSettings /></div>
       </header>
 
       <section className="relative z-10 grid gap-6 px-6 pb-10 lg:grid-cols-[1fr_1.3fr_1fr]">
