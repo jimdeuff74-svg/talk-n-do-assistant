@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { askJD, quickYT } from "@/lib/jd.functions";
 import { AudioSettings, applySink } from "@/components/AudioSettings";
+import { AuthGate, UserBadge } from "@/components/AuthGate";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: JD,
+  component: () => <AuthGate><JD /></AuthGate>,
 });
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -217,7 +218,7 @@ function JD() {
       <div className="hud-grid" />
       <header className="relative z-10 flex items-center justify-between px-8 py-5">
         <div className="font-display text-xl tracking-[0.4em] text-primary text-glow">JD 2.0</div>
-        <div className="flex items-center gap-5"><div className="font-display text-sm tracking-[0.3em] text-muted-foreground">{clock}</div><AudioSettings /></div>
+        <div className="flex items-center gap-5"><div className="font-display text-sm tracking-[0.3em] text-muted-foreground">{clock}</div><AudioSettings /><UserBadge /></div>
       </header>
 
       <section className="relative z-10 grid gap-6 px-6 pb-10 lg:grid-cols-[1fr_1.3fr_1fr]">
