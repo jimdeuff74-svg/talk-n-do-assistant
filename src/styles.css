@@ -173,3 +173,6 @@ body { font-family: var(--font-sans); font-size: 17px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { 50% { transform: scale(.88); opacity: .8; } }
 @keyframes talk { to { transform: scale(1.15); } }
+
+.hud-select { width: 100%; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 8px; padding: .6rem .75rem; outline: none; }
+.hud-select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px oklch(0.82 0.14 210 / 25%); }
